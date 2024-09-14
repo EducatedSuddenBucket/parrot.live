@@ -80,13 +80,18 @@ export default {
         new ReadableStream({
           async start(controller) {
             const interval = setInterval(() => {
-              const { frame } = stream();
-              // Use the correct Unicode escape sequences for clearing the screen
-              controller.enqueue(`\u001b[2J\u001b[3J\u001b[H${frame}\n`);
-              frameCount++;
-              if (frameCount >= frames.length) {
+              try {
+                const { frame } = stream();
+                // Clear the terminal and output frame
+                controller.enqueue(`\u001b[2J\u001b[3J\u001b[H${frame}\n`);
+                frameCount++;
+                if (frameCount >= frames.length) {
+                  clearInterval(interval);
+                  controller.close();
+                }
+              } catch (err) {
                 clearInterval(interval);
-                controller.close();
+                controller.error(`Stream error: ${err.message}`);
               }
             }, 70);
           },
