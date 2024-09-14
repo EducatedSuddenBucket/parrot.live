@@ -15,15 +15,18 @@ async function fetchFrames() {
   return frames;
 }
 
-const colorsOptions = [
-  'red',
-  'yellow',
-  'green',
-  'blue',
-  'magenta',
-  'cyan',
-  'white'
-];
+const ansiColors = {
+  red: '\u001b[31m',
+  yellow: '\u001b[33m',
+  green: '\u001b[32m',
+  blue: '\u001b[34m',
+  magenta: '\u001b[35m',
+  cyan: '\u001b[36m',
+  white: '\u001b[37m',
+  reset: '\u001b[0m',  // Resets color back to default
+};
+
+const colorsOptions = ['red', 'yellow', 'green', 'blue', 'magenta', 'cyan', 'white'];
 const numColors = colorsOptions.length;
 
 const selectColor = (previousColor) => {
@@ -43,13 +46,14 @@ const streamer = (frames, opts) => {
   return () => {
     const newColor = lastColor = selectColor(lastColor);
     const frame = selectedFrames[index];
+    const coloredFrame = `${ansiColors[colorsOptions[newColor]]}${frame}${ansiColors.reset}`;
     index = (index + 1) % selectedFrames.length;
-    return { frame, color: colorsOptions[newColor] };
+    return coloredFrame;
   };
 };
 
 const validateQuery = (urlParams) => ({
-  flip: String(urlParams.get('flip')).toLowerCase() === 'true'
+  flip: String(urlParams.get('flip')).toLowerCase() === 'true',
 });
 
 export default {
@@ -84,7 +88,7 @@ export default {
           async start(controller) {
             const interval = setInterval(() => {
               try {
-                const { frame } = stream();
+                const frame = stream();
                 console.log('Sending frame:', frame);
                 // Convert the frame string into a Uint8Array
                 const frameData = new TextEncoder().encode(`\u001b[2J\u001b[3J\u001b[H${frame}\n`);
