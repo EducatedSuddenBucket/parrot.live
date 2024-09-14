@@ -74,26 +74,25 @@ export default {
       const opts = validateQuery(urlParams);
       const stream = streamer(frames, opts);
 
-      let frameCount = 0;
-
       return new Response(
         new ReadableStream({
           async start(controller) {
             const interval = setInterval(() => {
               try {
                 const { frame } = stream();
-                // Clear the terminal and output frame
+                // Clear the terminal and output frame (ANSI escape codes)
                 controller.enqueue(`\u001b[2J\u001b[3J\u001b[H${frame}\n`);
-                frameCount++;
-                if (frameCount >= frames.length) {
-                  clearInterval(interval);
-                  controller.close();
-                }
               } catch (err) {
                 clearInterval(interval);
                 controller.error(`Stream error: ${err.message}`);
               }
-            }, 70);
+            }, 70); // Frame delay, adjust as needed
+
+            // Close the stream if the connection is terminated
+            request.signal.addEventListener('abort', () => {
+              clearInterval(interval);
+              controller.close();
+            });
           },
         }),
         { headers: { 'Content-Type': 'text/plain; charset=utf-8' } }
