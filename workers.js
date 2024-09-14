@@ -81,8 +81,8 @@ export default {
           async start(controller) {
             const interval = setInterval(() => {
               const { frame } = stream();
-              // Clear the terminal and output frame (ANSI codes can be used in curl)
-              controller.enqueue(`\033[2J\033[3J\033[H${frame}\n`);
+              // Use the correct Unicode escape sequences for clearing the screen
+              controller.enqueue(`\u001b[2J\u001b[3J\u001b[H${frame}\n`);
               frameCount++;
               if (frameCount >= frames.length) {
                 clearInterval(interval);
