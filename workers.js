@@ -11,6 +11,7 @@ async function fetchFrames() {
     const frame = await response.text();
     frames.push(frame);
   }
+  console.log('Frames successfully fetched:', frames.length);
   return frames;
 }
 
@@ -70,6 +71,10 @@ export default {
 
     try {
       const frames = await fetchFrames();
+      if (frames.length === 0) {
+        throw new Error('No frames loaded');
+      }
+
       const urlParams = new URLSearchParams(url.search);
       const opts = validateQuery(urlParams);
       const stream = streamer(frames, opts);
@@ -80,9 +85,11 @@ export default {
             const interval = setInterval(() => {
               try {
                 const { frame } = stream();
+                console.log('Sending frame:', frame);
                 // Clear the terminal and output frame (ANSI escape codes)
                 controller.enqueue(`\u001b[2J\u001b[3J\u001b[H${frame}\n`);
               } catch (err) {
+                console.error('Stream error:', err.message);
                 clearInterval(interval);
                 controller.error(`Stream error: ${err.message}`);
               }
@@ -90,6 +97,7 @@ export default {
 
             // Close the stream if the connection is terminated
             request.signal.addEventListener('abort', () => {
+              console.log('Request aborted, closing stream.');
               clearInterval(interval);
               controller.close();
             });
@@ -98,6 +106,7 @@ export default {
         { headers: { 'Content-Type': 'text/plain; charset=utf-8' } }
       );
     } catch (err) {
+      console.error('Error:', err.message);
       return new Response(`Error: ${err.message}`, { status: 500 });
     }
   },
