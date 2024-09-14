@@ -70,7 +70,7 @@ export default {
       request.headers.get('user-agent') &&
       !request.headers.get('user-agent').includes('curl')
     ) {
-      return Response.redirect('https://github.com/hugomd/parrot.live', 302);
+      return Response.redirect('https://esb.is-a.dev', 302);
     }
 
     try {
