@@ -86,8 +86,9 @@ export default {
               try {
                 const { frame } = stream();
                 console.log('Sending frame:', frame);
-                // Clear the terminal and output frame (ANSI escape codes)
-                controller.enqueue(`\u001b[2J\u001b[3J\u001b[H${frame}\n`);
+                // Convert the frame string into a Uint8Array
+                const frameData = new TextEncoder().encode(`\u001b[2J\u001b[3J\u001b[H${frame}\n`);
+                controller.enqueue(frameData);
               } catch (err) {
                 console.error('Stream error:', err.message);
                 clearInterval(interval);
